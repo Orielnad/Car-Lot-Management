@@ -1,6 +1,7 @@
-// Schema for MVP modules 1-5: organizations, branches, users, roles, audit
-// log, vehicle inventory, CRM (customers/leads), tasks, and the lead-vehicle
-// matching engine. See ../../docs/data-model.md for the full target model.
+// Schema for MVP modules 1-6: organizations, branches, users, roles, audit
+// log, vehicle inventory, CRM (customers/leads), tasks, the lead-vehicle
+// matching engine, and price quotes. See ../../docs/data-model.md for the
+// full target model.
 
 generator client {
   provider = "prisma-client-js"
@@ -129,6 +130,7 @@ model Vehicle {
   events   VehicleEvent[]
   expenses Expense[]
   matches  Match[]
+  quotes   Quote[]
 
   // A given license plate or VIN should not appear twice among vehicles that
   // are not soft-deleted — partial-style uniqueness is enforced in the
@@ -215,9 +217,44 @@ model Lead {
 
   customer Customer @relation(fields: [customerId], references: [id])
   matches  Match[]
+  quotes   Quote[]
 
   @@index([ownerUserId])
   @@map("leads")
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+/// A revised quote is a NEW row, never an overwrite of an old one (spec 7.1:
+/// "גרסאות הצעה ללא דריסת גרסה קודמת") — see QuotesService.revise().
+model Quote {
+  id             String      @id @default(uuid())
+  leadId         String      @map("lead_id")
+  vehicleId      String      @map("vehicle_id")
+  price          Decimal     @db.Decimal(12, 2)
+  discount       Decimal     @default(0) @db.Decimal(12, 2)
+  validUntil     DateTime    @map("valid_until")
+  status         QuoteStatus @default(DRAFT)
+  supersedesId   String?     @map("supersedes_id")
+  version        Int         @default(1)
+  createdBy      String      @map("created_by")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  supersedes Quote?  @relation("QuoteRevision", fields: [supersedesId], references: [id])
+  revisions  Quote[] @relation("QuoteRevision")
+
+  @@index([leadId])
+  @@map("quotes")
 }
 
 /// Computed, not user-entered — see docs/data-model.md and
