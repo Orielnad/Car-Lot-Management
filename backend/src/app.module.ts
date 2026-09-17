@@ -12,6 +12,7 @@ import { LeadsModule } from './leads/leads.module';
 import { TasksModule } from './tasks/tasks.module';
 import { MatchingModule } from './matching/matching.module';
 import { QuotesModule } from './quotes/quotes.module';
+import { DealsModule } from './deals/deals.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -29,6 +30,7 @@ import { AppController } from './app.controller';
     TasksModule,
     MatchingModule,
     QuotesModule,
+    DealsModule,
   ],
   controllers: [AppController],
 })

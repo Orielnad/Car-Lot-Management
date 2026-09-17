@@ -21,7 +21,12 @@ const ALLOWED_TRANSITIONS: Record<VehicleStatus, VehicleStatus[]> = {
   ],
   RESERVED: [VehicleStatus.AVAILABLE, VehicleStatus.IN_DEAL],
   IN_DEAL: [VehicleStatus.SOLD, VehicleStatus.AVAILABLE],
-  SOLD: [VehicleStatus.DELIVERED],
+  // AVAILABLE is reachable from SOLD too: spec section 21's explicit edge
+  // case is a sold deal getting cancelled, returning the vehicle to
+  // inventory while the deal and its cancellation costs stay on record
+  // (see DealsService — cancelling a deal never deletes it, only flips
+  // status, so nothing here contradicts "don't lose history").
+  SOLD: [VehicleStatus.DELIVERED, VehicleStatus.AVAILABLE],
   DELIVERED: [],
   CANCELLED: [],
   RETURNED_TO_SUPPLIER: [],
