@@ -1,6 +1,6 @@
-// Schema for MVP modules 1-7: organizations, branches, users, roles, audit
+// Schema for MVP modules 1-8: organizations, branches, users, roles, audit
 // log, vehicle inventory, CRM (customers/leads), tasks, the lead-vehicle
-// matching engine, price quotes, and deals/payments. See
+// matching engine, price quotes, deals/payments, and documents. See
 // ../../docs/data-model.md for the full target model.
 
 generator client {
@@ -386,6 +386,45 @@ model Payment {
 
   @@index([dealId])
   @@map("payments")
+}
+
+enum DocumentType {
+  LICENSE
+  INSPECTION
+  SERVICE_RECORD
+  INVOICE
+  RECEIPT
+  CONTRACT
+  DISCLOSURE
+  TITLE_TRANSFER
+  WARRANTY
+  ID_PHOTO
+  OTHER
+}
+
+/// Linked to a Lead/Customer/Vehicle/Deal by (entityType, entityId) — same
+/// lightweight polymorphic pattern as Task (see docs/data-model.md). A
+/// revision is a new row with supersedesId, exactly like Quote: the old
+/// version is never edited or deleted (spec 8: "שמירת כל גרסה, ללא דריסה").
+model Document {
+  id               String       @id @default(uuid())
+  entityType       String       @map("entity_type")
+  entityId         String       @map("entity_id")
+  docType          DocumentType @map("doc_type")
+  originalFileName String       @map("original_file_name")
+  storedFileName   String       @unique @map("stored_file_name")
+  mimeType         String       @map("mime_type")
+  sizeBytes        Int          @map("size_bytes")
+  version          Int          @default(1)
+  supersedesId     String?      @map("supersedes_id")
+  uploadedBy       String       @map("uploaded_by")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  supersedes Document?  @relation("DocumentRevision", fields: [supersedesId], references: [id])
+  revisions  Document[] @relation("DocumentRevision")
+
+  @@index([entityType, entityId])
+  @@map("documents")
 }
 
 model AuditLog {
