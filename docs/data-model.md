@@ -75,7 +75,15 @@ id, vehicle_id, category (רכש/השבחה/הובלה/פרסום/אחר), amoun
 **סטטוס ליד:** `new → contacted → qualified → meeting → test_drive → offer → negotiation → won / lost / not_relevant / future_nurture`
 
 ### Match
-id, lead_id, vehicle_id, score (0-100), explanation (json: מרכיבי הציון), created_at.
+id, lead_id, vehicle_id, score (0-100), explanation (json: מרכיבי הציון), created_at, updated_at.
+מחושב מחדש לפי דרישה (`POST /leads/:id/matches/recompute`) — לא נשמרת היסטוריה, רק
+upsert לפי `(lead_id, vehicle_id)`, כי מדובר בנתון נגזר ולא בקלט אנושי.
+
+**משקלים בפועל שמומשו** (`src/matching/match-score.ts`), גרסה מפושטת של הטבלה בסעיף 6
+במסמך האפיון (ללא "אבזור ובטיחות", שדורש רשימת פיצ'רים שלא קיימת עדיין ב-MVP):
+תקציב 25, יצרן+דגם 25, שנתון 10 + קילומטראז׳ 10, סוג מרכב 15, גיר 5 + סוג דלק 5, צבע 5.
+כלל מנחה: העדפה שלא צוינה על ידי הליד לא פוגעת בציון (מקבלת ניקוד מלא) — רק העדפה
+שצוינה ולא התקיימה מורידה ניקוד.
 
 ### Quote
 id, lead_id, vehicle_id, price, discount, valid_until, status (`draft → sent → viewed → approved → rejected → expired`), version, created_by.

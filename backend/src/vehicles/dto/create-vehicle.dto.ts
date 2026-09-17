@@ -43,6 +43,18 @@ export class CreateVehicleDto {
   color?: string;
 
   @IsOptional()
+  @IsString()
+  bodyType?: string;
+
+  @IsOptional()
+  @IsString()
+  gearbox?: string;
+
+  @IsOptional()
+  @IsString()
+  fuelType?: string;
+
+  @IsOptional()
   @IsPositive()
   purchasePrice?: number;
 }
