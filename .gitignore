@@ -1,0 +1,56 @@
+# סודות וסביבה
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# תלויות
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build
+dist/
+build/
+out/
+.next/
+.nuxt/
+*.egg-info/
+
+# לוגים
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# קבצים זמניים / מקומיים
+tmp/
+temp/
+*.tmp
+*.bak
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# מערכת הפעלה
+.DS_Store
+Thumbs.db
+
+# מסדי נתונים מקומיים
+*.sqlite
+*.sqlite3
+*.db
+
+# כיסוי בדיקות
+coverage/
+.nyc_output/
