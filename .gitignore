@@ -55,3 +55,7 @@ Thumbs.db
 # כיסוי בדיקות
 coverage/
 .nyc_output/
+
+# קבצים שהועלו על ידי משתמשים (מקומי בלבד — בייצור ילך לאחסון ענן)
+backend/storage/documents/*
+!backend/storage/documents/.gitkeep

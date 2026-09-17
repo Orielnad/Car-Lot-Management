@@ -7,5 +7,6 @@ import { LeadsModule } from '../leads/leads.module';
   imports: [LeadsModule],
   controllers: [DealsController],
   providers: [DealsService],
+  exports: [DealsService],
 })
 export class DealsModule {}
