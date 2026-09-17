@@ -1,7 +1,7 @@
-// Schema for MVP modules 1-6: organizations, branches, users, roles, audit
+// Schema for MVP modules 1-7: organizations, branches, users, roles, audit
 // log, vehicle inventory, CRM (customers/leads), tasks, the lead-vehicle
-// matching engine, and price quotes. See ../../docs/data-model.md for the
-// full target model.
+// matching engine, price quotes, and deals/payments. See
+// ../../docs/data-model.md for the full target model.
 
 generator client {
   provider = "prisma-client-js"
@@ -131,6 +131,7 @@ model Vehicle {
   expenses Expense[]
   matches  Match[]
   quotes   Quote[]
+  deals    Deal[]
 
   // A given license plate or VIN should not appear twice among vehicles that
   // are not soft-deleted — partial-style uniqueness is enforced in the
@@ -197,6 +198,7 @@ model Customer {
   deletedAt         DateTime? @map("deleted_at")
 
   leads Lead[]
+  deals Deal[]
 
   @@map("customers")
 }
@@ -252,6 +254,7 @@ model Quote {
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
   supersedes Quote?  @relation("QuoteRevision", fields: [supersedesId], references: [id])
   revisions  Quote[] @relation("QuoteRevision")
+  deal       Deal?
 
   @@index([leadId])
   @@map("quotes")
@@ -322,6 +325,67 @@ model Task {
   @@index([ownerUserId])
   @@index([entityType, entityId])
   @@map("tasks")
+}
+
+enum DealStatus {
+  DRAFT
+  PENDING_APPROVAL
+  SIGNED
+  PAID
+  READY_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  TRANSFER
+  CREDIT_CARD
+  CHECK
+  CASH
+  FINANCING
+  TRADE_IN
+}
+
+/// Critical business rule (spec section 20): a vehicle cannot be sold in two
+/// active deals at once. Enforced with a partial unique index at the
+/// database level (see migration SQL — Prisma's schema DSL can't express a
+/// filtered unique constraint), not only in application code, so a race
+/// between two concurrent requests still can't double-sell a vehicle.
+model Deal {
+  id             String     @id @default(uuid())
+  quoteId        String     @unique @map("quote_id")
+  customerId     String     @map("customer_id")
+  vehicleId      String     @map("vehicle_id")
+  salespersonId  String     @map("salesperson_id")
+  salePrice      Decimal    @db.Decimal(12, 2) @map("sale_price")
+  status         DealStatus @default(DRAFT)
+  version        Int        @default(1)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  quote    Quote     @relation(fields: [quoteId], references: [id])
+  customer Customer  @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id])
+  payments Payment[]
+
+  @@index([salespersonId])
+  @@index([vehicleId])
+  @@map("deals")
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  dealId    String        @map("deal_id")
+  amount    Decimal       @db.Decimal(12, 2)
+  method    PaymentMethod
+  reference String?
+  createdBy String?       @map("created_by")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  deal Deal @relation(fields: [dealId], references: [id])
+
+  @@index([dealId])
+  @@map("payments")
 }
 
 model AuditLog {

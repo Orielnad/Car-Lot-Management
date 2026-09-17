@@ -66,6 +66,16 @@ describe('assertValidVehicleTransition', () => {
     ).not.toThrow();
   });
 
+  it('allows a SOLD deal being cancelled to return the vehicle to AVAILABLE (spec 21 edge case)', () => {
+    expect(() =>
+      assertValidVehicleTransition({
+        currentStatus: VehicleStatus.SOLD,
+        nextStatus: VehicleStatus.AVAILABLE,
+        hasListPrice: true,
+      }),
+    ).not.toThrow();
+  });
+
   it('treats "no change" as always allowed, regardless of list price', () => {
     expect(() =>
       assertValidVehicleTransition({
