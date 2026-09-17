@@ -4,22 +4,28 @@
 מערכת Web לניהול מגרש רכבים לשימוש עסקי אמיתי: ניהול מלאי רכבים, לקוחות, לידים, עסקאות,
 מסמכים, תשלומים, הרשאות משתמשים, אוטומציות ודוחות.
 
-> **סטטוס נוכחי:** שלב תכנון ארכיטקטורה (שלב 0). מסמך האפיון המלא התקבל, נבחרה מחסנית
-> טכנולוגיה, ונבנים כרגע ה-ERD, ההרשאות וה-API לפני כתיבת קוד המוצר עצמו. ראו
-> [`docs/architecture.md`](./docs/architecture.md) לפירוט המלא.
+> **סטטוס נוכחי:** תחילת MVP. מודול ראשון עובד: משתמשים, הרשאות (RBAC) וסניפים, עם
+> Backend רץ מקצה לקצה מול מסד נתונים אמיתי ובדיקות אוטומטיות. עדיין אין Frontend.
+> ראו [`docs/architecture.md`](./docs/architecture.md) לתכנון המלא.
 
 ## מחסנית טכנולוגית
-React + TypeScript (Frontend) · Node.js + TypeScript / NestJS (Backend) · PostgreSQL + Prisma
-(מסד נתונים) · Redis + BullMQ (תורים) · JWT + RBAC (אימות והרשאות).
+React + TypeScript (Frontend, טרם נבנה) · Node.js + TypeScript / NestJS 11 (Backend) ·
+PostgreSQL + Prisma (מסד נתונים) · JWT + RBAC בצד שרת (אימות והרשאות).
 
-## הוראות התקנה והרצה
-יושלמו כשייכתב קוד המוצר הראשון (סוף שלב 0 / תחילת MVP). כרגע אין אפליקציה להרצה.
+## הוראות התקנה והרצה (Backend)
+דרישות מקדימות: Node.js 22+, PostgreSQL 16 (מותקן מקומית או ב-Docker).
 
-כשיתווסף קוד, סעיף זה יעודכן ויכלול:
-- דרישות מקדימות (Node.js, PostgreSQL, Redis)
-- התקנת תלויות
-- הרצת סביבת פיתוח מקומית
-- הרצת מסד הנתונים, כולל Migrations
+```bash
+cd backend
+npm install
+cp .env.example .env      # ומילוי DATABASE_URL ו-JWT_ACCESS_SECRET אמיתיים מקומית
+npm run prisma:migrate    # יוצר את הטבלאות במסד הנתונים
+npm run prisma:seed       # יוצר ארגון, סניף ומשתמש בעלים לדוגמה (נתוני דמו בלבד)
+npm run start:dev         # מריץ את השרת על http://localhost:3000
+```
+
+בדיקת תקינות מהירה: `curl http://localhost:3000/health` אמור להחזיר `{"status":"ok"}`.
+פרטי ההתחברות של משתמש הבעלים לדוגמה מודפסים בסוף הרצת ה-Seed (לא נתוני אמת).
 
 ## משתני סביבה
 רשימת שמות משתני הסביבה הנדרשים נמצאת בקובץ [`.env.example`](./.env.example).
@@ -37,18 +43,22 @@ React + TypeScript (Frontend) · Node.js + TypeScript / NestJS (Backend) · Post
 ├── .env.example                       שמות משתני סביבה (ללא ערכים)
 ├── .gitignore
 ├── docs/                              מסמכי ארכיטקטורה, ERD, הרשאות, API ועיצוב
+├── backend/                           שרת NestJS + Prisma (API, הרשאות, יומן ביקורת)
+│   ├── prisma/schema.prisma           סכמת מסד הנתונים ו-Migrations
+│   └── src/                           קוד המקור, מודול לכל תחום (auth, users, branches...)
 └── .github/
+    ├── workflows/backend-ci.yml       בדיקות אוטומטיות ל-Backend על כל PR
     ├── pull_request_template.md       תבנית ל-Pull Request
     └── ISSUE_TEMPLATE/                תבניות לפתיחת Issues
 ```
-מבנה תיקיות הקוד בפועל (backend / frontend / database וכו') ייקבע בתכנית הפיתוח שתאושר
-לאחר קבלת מסמך האפיון, ויתועד כאן וב-`CLAUDE.md`.
+תיקיית `frontend/` תתווסף במודול הבא. מבנה זה מתעדכן עם כל מודול חדש.
 
 ## בדיקות ופרסום
-- כל שינוי קוד יעבור בדיקות אוטומטיות לפני מיזוג ל-`main` (הגדרת הבדיקות תתווסף יחד עם
-  הקוד הראשון בפרויקט).
+- כל PR שנוגע ב-`backend/` מריץ אוטומטית Lint, בדיקת טיפוסים, Migrations ובדיקות יחידה
+  מול מסד PostgreSQL אמיתי (ראו `.github/workflows/backend-ci.yml`) — חובה שיעברו לפני מיזוג.
+- להרצה מקומית של הבדיקות: `cd backend && npm test`.
 - אין לפרסם לסביבת ייצור לפני הרצת בדיקת אבטחה (ראו כללי אבטחה ב-`CLAUDE.md`).
-- הוראות פרסום מלאות יתווספו לאחר בחירת סביבת האירוח.
+- הוראות פרסום לסביבת ייצור יתווספו לאחר בחירת ספק האירוח.
 
 ## איך תורמים
 ראו [`CONTRIBUTING.md`](./CONTRIBUTING.md) לתהליך העבודה המלא: ענפים, Commit, Pull Request
