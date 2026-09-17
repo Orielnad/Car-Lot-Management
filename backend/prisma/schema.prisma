@@ -1,0 +1,94 @@
+// Schema for MVP module 1: organizations, branches, users, roles, audit log.
+// See ../../docs/data-model.md for the full target model.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  OWNER
+  SALES_MANAGER
+  SALESPERSON
+  INVENTORY_MANAGER
+  OPERATIONS
+  FINANCE
+  VIEWER
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  branches Branch[]
+
+  @@map("organizations")
+}
+
+model Branch {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  name           String
+  address        String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  users        User[]
+
+  @@map("branches")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  branchId     String?   @map("branch_id")
+  fullName     String    @map("full_name")
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  isActive     Boolean   @default(true) @map("is_active")
+  version      Int       @default(1)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  branch Branch?    @relation(fields: [branchId], references: [id])
+  roles  UserRole[]
+
+  @@map("users")
+}
+
+model UserRole {
+  id       String   @id @default(uuid())
+  userId   String   @map("user_id")
+  role     RoleName
+  // הרשאה זו יכולה להיות מוגבלת לסניף מסוים בלבד (branch_scope null = כל הסניפים)
+  branchScopeId String? @map("branch_scope_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, role, branchScopeId])
+  @@map("user_roles")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  actorId    String?  @map("actor_id")
+  action     String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
