@@ -1,6 +1,6 @@
-// Schema for MVP modules 1-2: organizations, branches, users, roles, audit
-// log, and vehicle inventory. See ../../docs/data-model.md for the full
-// target model.
+// Schema for MVP modules 1-3: organizations, branches, users, roles, audit
+// log, vehicle inventory, and CRM (customers/leads). See
+// ../../docs/data-model.md for the full target model.
 
 generator client {
   provider = "prisma-client-js"
@@ -163,6 +163,56 @@ model Expense {
 
   @@index([vehicleId])
   @@map("expenses")
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  MEETING
+  TEST_DRIVE
+  OFFER
+  NEGOTIATION
+  WON
+  LOST
+  NOT_RELEVANT
+  FUTURE_NURTURE
+}
+
+model Customer {
+  id                String    @id @default(uuid())
+  fullName          String    @map("full_name")
+  phone             String
+  email             String?
+  city              String?
+  marketingConsent  Boolean   @default(false) @map("marketing_consent")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  leads Lead[]
+
+  @@map("customers")
+}
+
+model Lead {
+  id             String     @id @default(uuid())
+  customerId     String     @map("customer_id")
+  source         String
+  status         LeadStatus @default(NEW)
+  ownerUserId    String     @map("owner_user_id")
+  preferences    Json?
+  nextActionDate DateTime?  @map("next_action_date")
+  lossReason     String?    @map("loss_reason")
+  version        Int        @default(1)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  deletedAt      DateTime?  @map("deleted_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([ownerUserId])
+  @@map("leads")
 }
 
 model AuditLog {
