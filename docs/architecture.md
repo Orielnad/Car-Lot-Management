@@ -69,7 +69,7 @@
 
 **כל 10 מודולי ה-MVP הושלמו.** ראו `README.md` להרצה מקומית ו-`CONTRIBUTING.md` לתהליך העבודה. השלב הבא (לא MVP): Frontend, ואז שלב 2 לפי סדר העדיפויות בסעיף 40 של מסמך האפיון.
 
-**הערה ידועה (Follow-up):** הודעות שגיאת ולידציה (DTO) עדיין באנגלית ברירת המחדל של class-validator ולא בעברית — לא נדרש תיקון כרגע כי אין עדיין Frontend שמציג אותן למשתמש, אבל יש לטפל בזה (למשל Validation Pipe מותאם עם הודעות בעברית) לפני שמתחילים לבנות ממשק.
+**עודכן:** הודעות שגיאת ולידציה (DTO) תורגמו לעברית פשוטה לפני תחילת בניית ה-Frontend, כנדרש. ה-`ValidationPipe` הגלובלי (`backend/src/main.ts`) משתמש כעת ב-`exceptionFactory` ייעודי (`backend/src/common/validation/hebrew-validation-messages.ts`) שממיר כל שגיאת ולידציה למשפט עברי ידידותי (למשל "יש למלא יצרן." במקום "manufacturer should not be empty"), עם מילון שמות שדות בעברית ומיפוי לפי סוג הבדיקה שנכשלה. נבדק ביחידה (`hebrew-validation-messages.spec.ts`).
 
 ## החלטות ותלויות שכדאי לדעת עליהן
 - **NestJS 11 (לא 12):** גרסה 12 עברה ל-ESM בלבד (`"type": "module"`), מה שיוצר חיכוך
