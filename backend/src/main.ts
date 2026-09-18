@@ -17,7 +17,10 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.enableCors();
+  // Content-Disposition isn't in the CORS default-safelisted response headers,
+  // so the browser strips it before frontend JS can read it — needed to name
+  // a downloaded file after its real filename (see DocumentsController#download).
+  app.enableCors({ exposedHeaders: ['Content-Disposition'] });
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);

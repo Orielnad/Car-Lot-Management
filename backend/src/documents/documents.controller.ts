@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Header,
   Param,
   Post,
   Query,
@@ -67,7 +66,6 @@ export class DocumentsController {
   }
 
   @Get(':id/download')
-  @Header('Content-Disposition', 'attachment')
   async download(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     const { document, buffer } = await this.documentsService.download(id, user);
     return new StreamableFile(buffer, {
