@@ -20,7 +20,13 @@ async function bootstrap() {
   // Content-Disposition isn't in the CORS default-safelisted response headers,
   // so the browser strips it before frontend JS can read it — needed to name
   // a downloaded file after its real filename (see DocumentsController#download).
-  app.enableCors({ exposedHeaders: ['Content-Disposition'] });
+  // FRONTEND_URL restricts CORS to the deployed frontend's real origin in
+  // production; left unset (allow-all) it's still convenient for local dev.
+  const frontendUrl = process.env.FRONTEND_URL;
+  app.enableCors({
+    origin: frontendUrl ? frontendUrl.split(',').map((url) => url.trim()) : true,
+    exposedHeaders: ['Content-Disposition'],
+  });
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
